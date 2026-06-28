@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { PaperCard, type Paper } from "./components/PaperCard";
 import { FilterPanel, type Filters } from "./components/FilterPanel";
 import { Pagination } from "./components/Pagination";
-import { FetchButton } from "./components/FetchButton";
 import { ThemeToggle } from "./components/ThemeToggle";
 
 const DEFAULT_FILTERS: Filters = {
@@ -166,10 +165,7 @@ export default function Home() {
             <p className="byline" style={{ color: "var(--ink-3)", fontSize: "0.75rem" }}>
               {todayLabel()}
             </p>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <FetchButton onComplete={() => loadPapers(1)} />
-            </div>
+            <ThemeToggle />
           </div>
 
           {/* Nameplate */}
@@ -278,7 +274,7 @@ export default function Home() {
             <p className="byline" style={{ color: "var(--ink-3)", maxWidth: "28rem", margin: "0 auto" }}>
               {debouncedQuery || [filters.source, filters.tag, filters.category, filters.dateFrom, filters.dateTo, filters.minCitations].some(Boolean)
                 ? "Try broadening your search terms or clearing the active filters."
-                : "Hit ↻ Refresh above to pull the latest AI research papers from arXiv, Semantic Scholar, and more."}
+                : "New papers are added every morning. Check back soon."}
             </p>
           </div>
         ) : (

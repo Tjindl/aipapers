@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl is required when DATABASE_URL uses a connection pooler (e.g. Neon pgbouncer).
+  // Set DIRECT_URL to the non-pooled connection string for migrations.
+  directUrl = env("DIRECT_URL")
+}
+
+// Array fields (authors, categories, tags) are stored as JSON strings for simplicity.
+// Prisma reads/writes them via JSON.parse / JSON.stringify in the application layer.
+
+model Paper {
+  id            String        @id @default(cuid())
+  title         String
+  authors       String        // JSON: string[]
+  abstract      String?
+  publishedDate DateTime?
+  doi           String?       @unique
+  arxivId       String?       @unique
+  citationCount Int?
+  fetchedAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  categories    String        // JSON: string[]
+  tags          String        // JSON: string[]
+
+  sources       PaperSource[]
+}
+
+model PaperSource {
+  id        String  @id @default(cuid())
+  paperId   String
+  paper     Paper   @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  source    String  // "arxiv" | "semanticscholar" | "openreview" | "crossref" | "core" | "dblp"
+  sourceUrl String
+  pdfUrl    String?
+
+  @@unique([paperId, source])
+  @@index([source])
+  @@index([paperId])
+}

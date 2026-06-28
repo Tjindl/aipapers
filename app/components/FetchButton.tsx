@@ -13,17 +13,17 @@ interface FetchResult {
 export function FetchButton({ onComplete }: { onComplete?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [source, setSource] = useState("arxiv");
 
   async function handleFetch() {
     setLoading(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/fetch?source=${source}&maxResults=100`, { method: "POST" });
+      const res = await fetch("/api/fetch?maxResults=100", { method: "POST" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { results: FetchResult[] };
-      const r = data.results[0];
-      if (r) setToast(`${r.created} new · ${r.updated} updated`);
+      const totalCreated = data.results.reduce((sum, r) => sum + r.created, 0);
+      const totalUpdated = data.results.reduce((sum, r) => sum + r.updated, 0);
+      setToast(`${totalCreated} new · ${totalUpdated} updated`);
       onComplete?.();
     } catch {
       setToast("Fetch failed");
@@ -35,22 +35,6 @@ export function FetchButton({ onComplete }: { onComplete?: () => void }) {
 
   return (
     <div className="flex items-center gap-3">
-      <select
-        value={source}
-        onChange={(e) => setSource(e.target.value)}
-        disabled={loading}
-        className="filter-select text-xs"
-        style={{ color: "var(--ink-2)" }}
-      >
-        <option value="arxiv">arXiv</option>
-        <option value="organizations">AI Orgs</option>
-        <option value="semanticscholar">Semantic Scholar</option>
-        <option value="openreview">OpenReview</option>
-        <option value="crossref">CrossRef</option>
-        <option value="core">CORE</option>
-        <option value="dblp">DBLP</option>
-      </select>
-
       <button
         onClick={handleFetch}
         disabled={loading}
@@ -66,7 +50,7 @@ export function FetchButton({ onComplete }: { onComplete?: () => void }) {
             Fetching…
           </>
         ) : (
-          <>↻ Refresh</>
+          <>↻ Refresh All</>
         )}
       </button>
 

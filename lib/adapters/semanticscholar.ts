@@ -49,7 +49,7 @@ function sleep(ms: number) {
 export class SemanticScholarAdapter implements SourceAdapter {
   readonly name = "semanticscholar";
   readonly label = "Semantic Scholar";
-  readonly enabled = false; // disabled until SEMANTIC_SCHOLAR_API_KEY is set
+  readonly enabled = true;
 
   private apiKey?: string;
   private delayMs: number;

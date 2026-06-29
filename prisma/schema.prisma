@@ -27,6 +27,7 @@ model Paper {
   updatedAt     DateTime      @updatedAt
   categories    String        // JSON: string[]
   tags          String        // JSON: string[]
+  summary       String?       // AI-generated plain-English summary
 
   sources       PaperSource[]
 }

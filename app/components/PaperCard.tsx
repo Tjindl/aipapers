@@ -15,6 +15,7 @@ export interface Paper {
   title: string;
   authors: string[];
   abstract?: string | null;
+  summary?: string | null;
   publishedDate?: string | null;
   categories: string[];
   tags: string[];
@@ -228,8 +229,8 @@ export function PaperCard({ paper, featured = false }: { paper: Paper; featured?
           )}
         </div>
 
-        {/* Abstract — serif, longer */}
-        {paper.abstract && (
+        {/* Summary (AI) or abstract fallback */}
+        {(paper.summary || paper.abstract) && (
           <p
             className="abstract-clamp-6 leading-[1.85] mb-6"
             style={{
@@ -238,7 +239,12 @@ export function PaperCard({ paper, featured = false }: { paper: Paper; featured?
               fontFamily: "Georgia, 'Times New Roman', Times, serif",
             }}
           >
-            {paper.abstract}
+            {paper.summary ?? paper.abstract}
+          </p>
+        )}
+        {paper.summary && paper.abstract && (
+          <p className="byline mb-6" style={{ color: "var(--ink-3)", fontSize: "0.7rem", letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}>
+            AI summary · <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>original abstract available on paper page</span>
           </p>
         )}
 
@@ -320,13 +326,13 @@ export function PaperCard({ paper, featured = false }: { paper: Paper; featured?
         </p>
       )}
 
-      {/* Abstract */}
-      {paper.abstract && (
+      {/* Summary (AI) or abstract fallback */}
+      {(paper.summary || paper.abstract) && (
         <p
           className="abstract-clamp text-sm leading-relaxed mb-3"
           style={{ color: "var(--ink-2)", lineHeight: 1.7 }}
         >
-          {paper.abstract}
+          {paper.summary ?? paper.abstract}
         </p>
       )}
 

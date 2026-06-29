@@ -11,6 +11,7 @@
  */
 
 import { prisma } from "./prisma";
+import { summarizePaper } from "./summarizer";
 import type { FetchOptions, NormalizedPaper, SourceAdapter } from "./adapters/types";
 
 // ---- Helpers ----------------------------------------------------------------
@@ -94,6 +95,10 @@ async function upsertPaper(p: NormalizedPaper): Promise<"created" | "updated"> {
     });
     return "updated";
   } else {
+    // Generate AI summary for new papers that have an abstract
+    const summary =
+      p.abstract ? await summarizePaper(p.title, p.abstract) : null;
+
     // Create new paper with its first source link
     await prisma.paper.create({
       data: {
@@ -106,6 +111,7 @@ async function upsertPaper(p: NormalizedPaper): Promise<"created" | "updated"> {
         citationCount: p.citationCount ?? null,
         categories: JSON.stringify(p.categories),
         tags: JSON.stringify(p.tags),
+        summary,
         sources: { create: sourceData },
       },
     });

@@ -1,21 +1,25 @@
 # Corpus
 
-A clean, newspaper-style reader for AI and machine learning research. Aggregates papers from arXiv, Semantic Scholar, OpenReview, CrossRef, CORE, and DBLP into a single searchable, filterable feed — updated daily.
+A newspaper-style reader for AI and machine learning research. Aggregates papers from arXiv and AI research organizations into a single searchable, filterable feed — updated daily with AI-generated plain-English summaries.
 
-Built with Next.js 16, Prisma 6, PostgreSQL, and Tailwind CSS v4.
+Built with Next.js 16, Prisma 6, PostgreSQL (Neon), Tailwind CSS v4, and Claude Haiku.
 
 ---
 
 ## Features
 
-- **Multi-source aggregation** — arXiv (including AI org papers from Anthropic, OpenAI, DeepMind, Meta, etc.), Semantic Scholar, OpenReview, CrossRef, CORE, DBLP
-- **Smart deduplication** — DOI → arXiv ID → normalized title matching across sources
-- **Auto-tagging** — 27 topic patterns (LLMs, Diffusion, RL, Safety, Agents, …) and 20 organization patterns
-- **Rolling 2-week window** — auto-prunes papers older than 14 days
-- **Daily cron** — Vercel Cron fetches all sources at 6 AM UTC
-- **Full-text search** — title, abstract, author search
-- **Filters** — source, organization, topic, arXiv category, date range, min citations
+- **Daily auto-fetch** — Vercel Cron pulls new papers at 6 AM UTC; rolls a 14-day window
+- **AI summaries** — Claude Haiku generates a 2–3 sentence plain-English summary per paper (~$0.75/month)
+- **Multi-source** — arXiv categories (`cs.AI`, `cs.LG`, `cs.CL`, `cs.CV`, …) + AI org papers from Anthropic, OpenAI, DeepMind, Meta, Google, and more
+- **Smart deduplication** — DOI → arXiv ID → normalized title matching
+- **Auto-tagging** — 27 topic tags (LLMs, Diffusion Models, RL, AI Safety, Agents, …) and 20 organization tags
+- **Full-text search** — title, abstract, author
+- **Filters** — topic chips, organization, source, date range, min citations, sort
+- **Org monogram badges** — color-coded org identity (OAI, GDM, META, …) on each card
+- **Paper detail page** — full abstract + AI summary + related papers
+- **Bookmarks** — saved to localStorage
 - **Light / dark / system theme** — persisted to localStorage
+- **Animated canvas header** — live neural network particle animation
 
 ---
 
@@ -24,14 +28,17 @@ Built with Next.js 16, Prisma 6, PostgreSQL, and Tailwind CSS v4.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-username/corpus.git
-cd corpus
+git clone https://github.com/Tjindl/aipapers.git
+cd aipapers
 npm install
 ```
 
 ### 2. Set up PostgreSQL
 
-**Option A — Docker (quickest):**
+**Option A — Neon free tier (recommended):**
+Create a project at [neon.tech](https://neon.tech). You'll get a pooled URL and a direct URL — you need both.
+
+**Option B — Docker:**
 ```bash
 docker run -d \
   --name corpus-pg \
@@ -41,28 +48,26 @@ docker run -d \
   postgres:16-alpine
 ```
 
-**Option B — Neon free tier:**
-Create a project at [neon.tech](https://neon.tech), copy the connection string. Works for both local dev and production.
-
 ### 3. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and set your database URLs:
+Edit `.env`:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/corpus"
 DIRECT_URL="postgresql://postgres:postgres@localhost:5432/corpus"
+ANTHROPIC_API_KEY="sk-ant-..."   # optional but recommended
 ```
 
-If you're using Neon (which uses a connection pooler), `DATABASE_URL` gets the pooled URL and `DIRECT_URL` gets the direct URL — both are shown in the Neon dashboard.
+With Neon: `DATABASE_URL` = pooled URL, `DIRECT_URL` = direct URL (both shown in Neon dashboard).
 
-### 4. Run database migrations
+### 4. Run migrations
 
 ```bash
-npx prisma migrate deploy
+DATABASE_URL="..." npx prisma migrate deploy
 ```
 
 ### 5. Start the dev server
@@ -71,99 +76,68 @@ npx prisma migrate deploy
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The feed will be empty — click **↻ Refresh** to fetch your first batch of papers.
+Open [http://localhost:3000](http://localhost:3000). The feed will be empty — run the fetch script to populate it.
 
----
-
-## Fetching Papers
-
-### Via the UI
-
-Click **↻ Refresh** in the top bar, choose a source from the dropdown, and click the button.
-
-### Via CLI
+### 6. Fetch papers
 
 ```bash
-# Fetch all sources + prune papers older than 14 days
-npm run fetch
+npm run fetch          # fetch all sources + prune old papers
+npm run fetch:arxiv    # arXiv only
+npm run fetch:orgs     # AI org papers only
+```
 
-# Single source
-npm run fetch:arxiv
-npx tsx scripts/fetch.ts --source semanticscholar
+### 7. (Optional) Backfill AI summaries
 
-# All sources, no date limit
-npx tsx scripts/fetch.ts --since all
+If you have papers already in the DB without summaries:
 
-# Limit results per source
-npx tsx scripts/fetch.ts --source arxiv --max 50
-
-# Only prune, no fetch
-npm run prune
-
-# Re-apply current tagging rules to all existing papers
-npm run retag
+```bash
+ANTHROPIC_API_KEY="sk-ant-..." npx tsx scripts/backfill-summaries.ts
 ```
 
 ---
 
 ## Deploying to Vercel
 
-### 1. Create a PostgreSQL database
-
-The easiest option is **Neon** — it has a generous free tier and first-class Vercel integration:
-
-1. Go to your [Vercel dashboard](https://vercel.com/dashboard) → **Storage** → **Create** → **Neon**
-2. Follow the prompts; Vercel will automatically add `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, and other env vars to your project
-
-Alternatively use Supabase, Railway, or any PostgreSQL provider.
-
-### 2. Push to GitHub
+### 1. Push to GitHub
 
 ```bash
-git add .
-git commit -m "Initial commit"
 git remote add origin https://github.com/your-username/corpus.git
 git push -u origin main
 ```
 
-### 3. Import to Vercel
+### 2. Import to Vercel
 
-1. [Import the repository](https://vercel.com/new) on Vercel
-2. Vercel auto-detects Next.js — no framework config needed
-3. The `vercel.json` `buildCommand` (`prisma migrate deploy && next build`) runs migrations automatically on each deploy
+[Import the repository](https://vercel.com/new) — Vercel auto-detects Next.js. No framework config needed.
 
-### 4. Set environment variables
+### 3. Set environment variables
 
-In **Vercel → Project → Settings → Environment Variables**, add:
+In **Vercel → Project → Settings → Environment Variables**:
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | **Yes** | Pooled PostgreSQL URL (set automatically if using Vercel × Neon) |
-| `DIRECT_URL` | **Yes** | Direct (non-pooled) PostgreSQL URL — used for migrations |
-| `CRON_SECRET` | **Yes** | Protects `/api/cron`. Generate with `openssl rand -hex 32` |
-| `FETCH_SECRET` | No | Protects `/api/fetch` from unauthorized triggers |
-| `SEMANTIC_SCHOLAR_API_KEY` | No | Raises S2 rate limit to 1 req/s |
-| `CORE_API_KEY` | No | Required to enable CORE adapter |
+| `DATABASE_URL` | **Yes** | Pooled PostgreSQL connection string |
+| `DIRECT_URL` | **Yes** | Direct (non-pooled) connection string — for migrations |
+| `ANTHROPIC_API_KEY` | Recommended | Enables AI summaries via Claude Haiku |
+| `CRON_SECRET` | **Yes** | Protects `/api/cron`. Generate: `openssl rand -hex 32` |
+| `SEMANTIC_SCHOLAR_API_KEY` | No | Raises S2 rate limit to 1 req/s (adapter disabled by default) |
+| `CORE_API_KEY` | No | Required to enable the CORE adapter |
 | `CROSSREF_CONTACT_EMAIL` | Recommended | Polite Pool access for CrossRef |
 
-### 5. Set the Vercel Cron secret
+### 4. Run the initial migration
 
-In Vercel project settings → **Cron Jobs**, Vercel will automatically send `Authorization: Bearer <CRON_SECRET>` to `/api/cron` at 6 AM UTC daily (configured in `vercel.json`).
-
-### 6. Bootstrap the database
-
-After the first successful deploy, trigger an initial fetch manually:
+From your local machine with production env vars:
 
 ```bash
-# Install Vercel CLI if needed
-npm i -g vercel
-
-# Fetch via the deployed API
-curl -X POST https://your-app.vercel.app/api/fetch?source=arxiv \
-  -H "x-fetch-secret: YOUR_FETCH_SECRET"
+DATABASE_URL="<your-neon-direct-url>" npx prisma migrate deploy
 ```
 
-Or just open the deployed app and click **↻ Refresh** in the UI.
+### 5. Seed the database
+
+```bash
+DATABASE_URL="..." ANTHROPIC_API_KEY="..." npm run fetch
+```
+
+After the first deploy, the Vercel Cron at `0 6 * * *` (6 AM UTC) handles daily updates automatically.
 
 ---
 
@@ -172,38 +146,39 @@ Or just open the deployed app and click **↻ Refresh** in the UI.
 ```
 app/
   api/
-    papers/         GET /api/papers    — list/search with filters + pagination
-    fetch/          POST /api/fetch    — trigger adapter run
-    sources/        GET /api/sources   — list enabled adapters
-    cron/           GET|POST /api/cron — daily fetch+prune (called by Vercel Cron)
+    papers/           GET  /api/papers  — paginated search + filter
+    sources/          GET  /api/sources — enabled adapter list
+    cron/             GET  /api/cron    — daily fetch+prune (Vercel Cron)
   components/
-    PaperCard.tsx   Paper list item (featured lead story + regular cards)
-    FilterPanel.tsx Horizontal filter bar
-    FetchButton.tsx ↻ Refresh button with source selector
-    Pagination.tsx  ← Previous / Next →
-    ThemeToggle.tsx Light/dark/system theme button
-  papers/[id]/      Paper detail page
-  page.tsx          Main feed
+    NeuralCanvas.tsx  Animated canvas header (particle network)
+    PaperCard.tsx     Feed card (featured lead + regular)
+    FilterPanel.tsx   Topic chips + secondary filter bar
+    Pagination.tsx    Page controls
+    ThemeToggle.tsx   Light / dark / system theme
+  papers/[id]/        Paper detail page
+  page.tsx            Main feed
 lib/
-  prisma.ts         Prisma client singleton
-  fetcher.ts        Adapter orchestration, deduplication, pruning
-  tagger.ts         Tag normalization (topics + organizations)
+  prisma.ts           Prisma client singleton
+  fetcher.ts          Adapter orchestration, upsert, deduplication, pruning
+  summarizer.ts       Claude Haiku summary generation
+  tagger.ts           Topic + organization tag detection
   adapters/
-    types.ts        SourceAdapter interface + NormalizedPaper type
-    index.ts        Adapter registry
-    arxiv.ts        arXiv Atom feed
-    organizations.ts  AI org papers via arXiv search
+    types.ts          SourceAdapter interface + NormalizedPaper type
+    index.ts          Adapter registry
+    arxiv.ts          arXiv Atom feed
+    organizations.ts  AI org papers via arXiv author/org search
     semanticscholar.ts
     openreview.ts
     crossref.ts
     core.ts
     dblp.ts
 prisma/
-  schema.prisma     Database schema (PostgreSQL)
-  migrations/       Migration history
+  schema.prisma       PostgreSQL schema
+  migrations/         Migration history
 scripts/
-  fetch.ts          CLI fetch script (also used by npm run fetch)
-  retag.ts          Backfill tagging on existing papers
+  fetch.ts            CLI fetch script (also used by npm run fetch)
+  backfill-summaries.ts  Generate AI summaries for existing papers
+  retag.ts            Re-apply tagging rules to all existing papers
 ```
 
 ---
@@ -221,35 +196,34 @@ export class MySourceAdapter implements SourceAdapter {
   readonly enabled = true;
 
   async fetch(options: FetchOptions = {}): Promise<NormalizedPaper[]> {
-    // Fetch from API, normalize to NormalizedPaper, return array
+    // fetch from API, normalize, return
   }
 }
 ```
 
-Register it in `lib/adapters/index.ts`:
+Register in `lib/adapters/index.ts`:
 
 ```ts
 import { MySourceAdapter } from "./mysource";
-
-export const adapters: SourceAdapter[] = [
-  // ...existing
-  new MySourceAdapter(),
-];
+// add to the adapters array
 ```
 
-The fetcher, API routes, and UI pick it up automatically.
+The fetcher, API routes, filter panel, and cron all pick it up automatically.
 
 ---
 
 ## Source Rate Limits
 
-| Source | Limit | Auth |
-|---|---|---|
-| arXiv | ~3s between requests | None |
-| Semantic Scholar | 100 req/5min (no key) · 1 req/s (with key) | Optional API key |
-| OpenReview | ~1 req/s | None |
-| CrossRef | Polite Pool (no hard limit) | Email in User-Agent |
-| CORE | 10 req/min (free tier) | API key required |
-| DBLP | ~1 req/s | None |
+| Source | Limit | Auth | Status |
+|---|---|---|---|
+| arXiv | ~3s between requests | None | Enabled |
+| Organizations (arXiv) | ~3s between requests | None | Enabled |
+| Semantic Scholar | 100 req/5min · 1 req/s (with key) | Optional | Disabled* |
+| OpenReview | ~1 req/s | None | Enabled |
+| CrossRef | Polite Pool | Email recommended | Enabled |
+| CORE | 10 req/min | API key required | Disabled* |
+| DBLP | ~1 req/s | None | Enabled |
+
+\* Set the relevant API key in env vars to enable.
 
 > Google Scholar is intentionally excluded — scraping violates its Terms of Service.

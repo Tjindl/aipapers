@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
+import { KNOWN_ORGANIZATIONS } from "@/lib/tagger";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,20 @@ export default async function PaperPage({ params }: Props) {
   const authors = JSON.parse(paper.authors) as string[];
   const categories = JSON.parse(paper.categories) as string[];
   const tags = JSON.parse(paper.tags) as string[];
+
+  // Related papers: share at least one non-org tag, exclude self
+  const topicTags = tags.filter((t) => !KNOWN_ORGANIZATIONS.includes(t));
+  const related = topicTags.length > 0
+    ? await prisma.paper.findMany({
+        where: {
+          id: { not: id },
+          tags: { contains: topicTags[0] },
+        },
+        select: { id: true, title: true, tags: true, publishedDate: true },
+        orderBy: { publishedDate: "desc" },
+        take: 4,
+      })
+    : [];
 
   const label = primaryLabel(tags, categories);
   const publishedDate = paper.publishedDate
@@ -170,6 +185,25 @@ export default async function PaperPage({ params }: Props) {
           )}
         </div>
 
+        {/* AI Summary */}
+        {paper.summary && (
+          <section className="mb-8 p-5 rounded-sm" style={{ background: "var(--paper-2)", borderLeft: "3px solid var(--accent)" }}>
+            <h2 className="section-label mb-3" style={{ color: "var(--accent)" }}>
+              Plain-English Summary
+            </h2>
+            <p
+              style={{
+                fontSize: "1.0625rem",
+                color: "var(--ink)",
+                fontFamily: "Georgia, 'Times New Roman', Times, serif",
+                lineHeight: 1.85,
+              }}
+            >
+              {paper.summary}
+            </p>
+          </section>
+        )}
+
         {/* Abstract */}
         {paper.abstract && (
           <section className="mb-8">
@@ -182,7 +216,7 @@ export default async function PaperPage({ params }: Props) {
             <p
               style={{
                 fontSize: "1.0625rem",
-                color: "var(--ink)",
+                color: "var(--ink-2)",
                 fontFamily: "Georgia, 'Times New Roman', Times, serif",
                 lineHeight: 1.85,
                 maxWidth: "65ch",
@@ -228,7 +262,7 @@ export default async function PaperPage({ params }: Props) {
         {/* Sources */}
         {paper.sources.length > 0 && (
           <section
-            className="pt-5"
+            className="pt-5 mb-10"
             style={{ borderTop: "1px solid var(--rule)" }}
           >
             <h2 className="section-label mb-3" style={{ color: "var(--ink-3)" }}>
@@ -262,6 +296,42 @@ export default async function PaperPage({ params }: Props) {
                   )}
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Related papers */}
+        {related.length > 0 && (
+          <section
+            className="pt-8"
+            style={{ borderTop: "3px double var(--rule)" }}
+          >
+            <h2 className="section-label mb-5" style={{ color: "var(--ink-3)" }}>
+              Related Papers
+            </h2>
+            <div className="space-y-0">
+              {related.map((r) => {
+                const rTags = JSON.parse(r.tags) as string[];
+                const rLabel = rTags.find((t) => !t.match(/^[a-z]{1,5}\.[A-Z]{2}/) && !["cs","stat","eess","q-bio"].includes(t));
+                const rDate = r.publishedDate
+                  ? new Date(r.publishedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                  : null;
+                return (
+                  <div key={r.id} className="py-4" style={{ borderBottom: "1px solid var(--rule)" }}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      {rLabel && <span className="tag-pill tag-pill-muted">{rLabel}</span>}
+                      {rDate && <span className="byline" style={{ color: "var(--ink-3)" }}>{rDate}</span>}
+                    </div>
+                    <Link
+                      href={`/papers/${r.id}`}
+                      className="font-serif leading-snug hover:underline underline-offset-2 decoration-1 transition-opacity hover:opacity-75"
+                      style={{ fontSize: "1.1rem", color: "var(--ink)", display: "block" }}
+                    >
+                      {r.title}
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}

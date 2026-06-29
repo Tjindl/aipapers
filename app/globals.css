@@ -2,16 +2,16 @@
 
 /* ── Design tokens ─────────────────────────────────────── */
 :root {
-  --paper:     #faf9f7;   /* warm newsprint white          */
-  --paper-2:   #f3f1ed;   /* slightly deeper surface       */
-  --ink:       #1a1815;   /* near-black body text          */
-  --ink-2:     #4a4540;   /* secondary/meta text           */
-  --ink-3:     #9c9590;   /* tertiary / placeholders       */
-  --rule:      #e0dbd3;   /* dividers & borders            */
-  --surface:   #ffffff;   /* card/modal surfaces           */
-  --accent:    #b91c1c;   /* section/category label red    */
-  --accent-2:  #1d4ed8;   /* links                         */
-  --accent-top:#b91c1c;   /* masthead top bar              */
+  --paper:     #faf9f7;
+  --paper-2:   #f3f1ed;
+  --ink:       #1a1815;
+  --ink-2:     #4a4540;
+  --ink-3:     #9c9590;
+  --rule:      #e0dbd3;
+  --surface:   #ffffff;
+  --accent:    #b91c1c;
+  --accent-2:  #1d4ed8;
+  --accent-top:#b91c1c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,7 +29,6 @@
   }
 }
 
-/* Manual theme overrides */
 [data-theme="light"] {
   --paper:     #faf9f7;
   --paper-2:   #f3f1ed;
@@ -64,9 +63,7 @@
 }
 
 /* ── Base ───────────────────────────────────────────────── */
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--paper);
@@ -75,13 +72,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Typography helpers ─────────────────────────────────── */
+/* ── Typography ─────────────────────────────────────────── */
 .font-serif {
   font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .section-label {
-  font-size: 0.625rem;    /* 10px */
+  font-size: 0.625rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -89,12 +86,12 @@ body {
 }
 
 .byline {
-  font-size: 0.8125rem;   /* 13px */
+  font-size: 0.8125rem;
   color: var(--ink-2);
   line-height: 1.5;
 }
 
-/* ── Abstract line clamp ────────────────────────────────── */
+/* ── Abstract clamps ────────────────────────────────────── */
 .abstract-clamp {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -116,7 +113,37 @@ body {
   -webkit-line-clamp: 6;
 }
 
-/* ── Tag pills ──────────────────────────────────────────── */
+/* ── Topic / tag chip ───────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3em 0.85em;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.6;
+  user-select: none;
+  transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+}
+
+.chip:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+
+.chip-active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+/* ── Tag inline pill ─────────────────────────────────────── */
 .tag-pill {
   display: inline-flex;
   align-items: center;
@@ -136,7 +163,7 @@ body {
   color: var(--ink-3);
 }
 
-/* ── Paper article hover ────────────────────────────────── */
+/* ── Card hover ─────────────────────────────────────────── */
 .paper-hover {
   transition: background 0.15s ease;
   border-radius: 2px;
@@ -149,7 +176,11 @@ body {
   background: color-mix(in srgb, var(--rule) 40%, transparent);
 }
 
-/* ── Minimal select (for filter bar) ───────────────────── */
+/* ── Scrollbar hide ─────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Filter select ──────────────────────────────────────── */
 .filter-select {
   appearance: none;
   background: transparent;
@@ -164,11 +195,19 @@ body {
   outline: none;
 }
 
-.filter-select:focus {
-  color: var(--ink);
-}
+.filter-select:focus { color: var(--ink); }
 
 .filter-select option {
   background: var(--surface);
   color: var(--ink);
+}
+
+/* ── Neural net pulse ───────────────────────────────────── */
+@keyframes nn-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+.nn-pulse {
+  animation: nn-pulse 2.8s ease-in-out infinite;
 }

@@ -46,41 +46,59 @@ function todayLabel() {
 }
 
 function NeuralNetSVG({ mirror = false }: { mirror?: boolean }) {
+  // Unique filter IDs per instance to avoid SVG conflicts
+  const gid = mirror ? "nn-b" : "nn-a";
   return (
     <svg
-      viewBox="0 0 64 46"
+      viewBox="0 0 82 58"
       fill="none"
       aria-hidden="true"
-      className="h-9 sm:h-12 md:h-14 w-auto shrink-0"
-      style={{
-        transform: mirror ? "scaleX(-1)" : undefined,
-        opacity: 0.8,
-      }}
+      className="h-10 sm:h-14 md:h-16 w-auto shrink-0"
+      style={{ transform: mirror ? "scaleX(-1)" : undefined }}
     >
-      {/* ── Edges: Input → Hidden ── */}
-      <line x1="5"  y1="11" x2="32" y2="5"  stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="5"  y1="11" x2="32" y2="23" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="5"  y1="11" x2="32" y2="41" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="5"  y1="35" x2="32" y2="5"  stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="5"  y1="35" x2="32" y2="23" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="5"  y1="35" x2="32" y2="41" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      {/* ── Edges: Hidden → Output ── */}
-      <line x1="32" y1="5"  x2="59" y2="11" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="32" y1="5"  x2="59" y2="35" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="32" y1="23" x2="59" y2="11" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="32" y1="23" x2="59" y2="35" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="32" y1="41" x2="59" y2="11" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      <line x1="32" y1="41" x2="59" y2="35" stroke="var(--ink-3)" strokeWidth="0.8"/>
-      {/* ── Nodes: input layer ── */}
-      <circle cx="5"  cy="11" r="3.5" fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
-      <circle cx="5"  cy="35" r="3.5" fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
-      {/* ── Nodes: hidden layer ── */}
-      <circle cx="32" cy="5"  r="3"   fill="var(--paper)" stroke="var(--ink-2)" strokeWidth="1.25"/>
-      <circle cx="32" cy="23" r="4"   fill="var(--accent)" stroke="var(--accent)" strokeWidth="1"/>
-      <circle cx="32" cy="41" r="3"   fill="var(--paper)" stroke="var(--ink-2)" strokeWidth="1.25"/>
-      {/* ── Nodes: output layer ── */}
-      <circle cx="59" cy="11" r="3.5" fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
-      <circle cx="59" cy="35" r="3.5" fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
+      <defs>
+        <filter id={gid} x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* ── All connections (muted base layer) ── */}
+      {/* L1 → L2 */}
+      <line x1="8" y1="14" x2="41" y2="6"  stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="8" y1="14" x2="41" y2="29" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="8" y1="14" x2="41" y2="52" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="8" y1="44" x2="41" y2="6"  stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="8" y1="44" x2="41" y2="29" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="8" y1="44" x2="41" y2="52" stroke="var(--rule)" strokeWidth="1.1"/>
+      {/* L2 → L3 */}
+      <line x1="41" y1="6"  x2="74" y2="14" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="41" y1="6"  x2="74" y2="44" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="41" y1="29" x2="74" y2="14" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="41" y1="29" x2="74" y2="44" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="41" y1="52" x2="74" y2="14" stroke="var(--rule)" strokeWidth="1.1"/>
+      <line x1="41" y1="52" x2="74" y2="44" stroke="var(--rule)" strokeWidth="1.1"/>
+
+      {/* ── Active signal path (highlighted) ── */}
+      <line x1="8"  y1="14" x2="41" y2="29" stroke="var(--accent)" strokeWidth="1.4" strokeOpacity="0.5"/>
+      <line x1="41" y1="29" x2="74" y2="44" stroke="var(--accent)" strokeWidth="1.4" strokeOpacity="0.5"/>
+
+      {/* ── Input nodes ── */}
+      <circle cx="8" cy="14" r="4.5" fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
+      <circle cx="8" cy="44" r="4.5" fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1.25"/>
+
+      {/* ── Hidden nodes ── */}
+      <circle cx="41" cy="6"  r="3.5" fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1.25"/>
+      {/* Center node — glowing, pulsing */}
+      <circle cx="41" cy="29" r="6"   fill="var(--accent)" className="nn-pulse" filter={`url(#${gid})`}/>
+      <circle cx="41" cy="52" r="3.5" fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1.25"/>
+
+      {/* ── Output nodes ── */}
+      <circle cx="74" cy="14" r="4.5" fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1.25"/>
+      <circle cx="74" cy="44" r="4.5" fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
     </svg>
   );
 }

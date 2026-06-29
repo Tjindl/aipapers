@@ -5,6 +5,7 @@ import { PaperCard, type Paper } from "./components/PaperCard";
 import { FilterPanel, type Filters } from "./components/FilterPanel";
 import { Pagination } from "./components/Pagination";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { NeuralCanvas } from "./components/NeuralCanvas";
 
 const DEFAULT_FILTERS: Filters = {
   source: "",
@@ -45,101 +46,6 @@ function todayLabel() {
   });
 }
 
-function NeuralNetSVG({ mirror = false }: { mirror?: boolean }) {
-  const gid = mirror ? "nn-b" : "nn-a";
-  return (
-    <svg
-      viewBox="0 0 200 90"
-      fill="none"
-      aria-hidden="true"
-      className="h-14 sm:h-20 md:h-24 w-auto shrink-0"
-      style={{ transform: mirror ? "scaleX(-1)" : undefined }}
-    >
-      <defs>
-        <filter id={gid} x="-150%" y="-150%" width="400%" height="400%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      {/* ── Muted base connections ── */}
-      {/* L1 → L2 */}
-      <line x1="14" y1="18" x2="55" y2="10" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="18" x2="55" y2="28" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="45" x2="55" y2="10" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="45" x2="55" y2="28" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="45" x2="55" y2="46" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="72" x2="55" y2="28" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="72" x2="55" y2="46" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="14" y1="72" x2="55" y2="64" stroke="var(--rule)" strokeWidth="0.9"/>
-      {/* L2 → L3 */}
-      <line x1="55" y1="10" x2="100" y2="18" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="10" x2="100" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="28" x2="100" y2="18" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="28" x2="100" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="46" x2="100" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="46" x2="100" y2="72" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="64" x2="100" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="55" y1="64" x2="100" y2="72" stroke="var(--rule)" strokeWidth="0.9"/>
-      {/* L3 → L4 */}
-      <line x1="100" y1="18" x2="145" y2="10" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="100" y1="18" x2="145" y2="28" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="100" y1="45" x2="145" y2="28" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="100" y1="45" x2="145" y2="46" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="100" y1="72" x2="145" y2="46" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="100" y1="72" x2="145" y2="64" stroke="var(--rule)" strokeWidth="0.9"/>
-      {/* L4 → L5 */}
-      <line x1="145" y1="10" x2="186" y2="18" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="145" y1="28" x2="186" y2="18" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="145" y1="28" x2="186" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="145" y1="46" x2="186" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="145" y1="46" x2="186" y2="72" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="145" y1="64" x2="186" y2="45" stroke="var(--rule)" strokeWidth="0.9"/>
-      <line x1="145" y1="64" x2="186" y2="72" stroke="var(--rule)" strokeWidth="0.9"/>
-
-      {/* ── Active signal path ── */}
-      <line x1="14"  y1="18"  x2="55"  y2="28"  stroke="var(--accent)" strokeWidth="1.3" strokeOpacity="0.55"/>
-      <line x1="55"  y1="28"  x2="100" y2="45"  stroke="var(--accent)" strokeWidth="1.3" strokeOpacity="0.55"/>
-      <line x1="100" y1="45"  x2="145" y2="46"  stroke="var(--accent)" strokeWidth="1.3" strokeOpacity="0.55"/>
-      <line x1="145" y1="46"  x2="186" y2="72"  stroke="var(--accent)" strokeWidth="1.3" strokeOpacity="0.55"/>
-
-      {/* ── Halo ring around center node ── */}
-      <circle cx="100" cy="45" r="15" stroke="var(--accent)" strokeWidth="0.6" strokeOpacity="0.18" fill="none"/>
-      <circle cx="100" cy="45" r="22" stroke="var(--accent)" strokeWidth="0.4" strokeOpacity="0.08" fill="none"/>
-
-      {/* ── L1 input nodes ── */}
-      <circle cx="14" cy="18" r="5"   fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
-      <circle cx="14" cy="45" r="3.5" fill="var(--paper)" stroke="var(--ink-3)"  strokeWidth="1.1"/>
-      <circle cx="14" cy="72" r="3.5" fill="var(--paper)" stroke="var(--ink-3)"  strokeWidth="1.1"/>
-
-      {/* ── L2 nodes ── */}
-      <circle cx="55" cy="10" r="3"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-      <circle cx="55" cy="28" r="4"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1.2"/>
-      <circle cx="55" cy="46" r="3"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-      <circle cx="55" cy="64" r="3"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-
-      {/* ── L3 nodes ── */}
-      <circle cx="100" cy="18" r="3.5" fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-      {/* Center node — glow + pulse */}
-      <circle cx="100" cy="45" r="8" fill="var(--accent)" className="nn-pulse" filter={`url(#${gid})`}/>
-      <circle cx="100" cy="72" r="3.5" fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-
-      {/* ── L4 nodes ── */}
-      <circle cx="145" cy="10" r="3"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-      <circle cx="145" cy="28" r="3"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-      <circle cx="145" cy="46" r="4"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1.2"/>
-      <circle cx="145" cy="64" r="3"   fill="var(--paper)" stroke="var(--ink-3)" strokeWidth="1"/>
-
-      {/* ── L5 output nodes ── */}
-      <circle cx="186" cy="18" r="3.5" fill="var(--paper)" stroke="var(--ink-3)"  strokeWidth="1.1"/>
-      <circle cx="186" cy="45" r="3.5" fill="var(--paper)" stroke="var(--ink-3)"  strokeWidth="1.1"/>
-      <circle cx="186" cy="72" r="5"   fill="var(--paper)" stroke="var(--accent)" strokeWidth="1.5"/>
-    </svg>
-  );
-}
 
 export default function Home() {
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -225,34 +131,33 @@ export default function Home() {
           </div>
 
           {/* Nameplate */}
-          <div className="text-center py-5" style={{ borderBottom: "3px double var(--rule)" }}>
-            <div className="flex items-center justify-center gap-5 sm:gap-9">
-              <NeuralNetSVG />
+          <div className="relative overflow-hidden text-center py-10" style={{ borderBottom: "3px double var(--rule)" }}>
+            <NeuralCanvas />
+            <div className="relative z-10">
               <h1
                 className="font-serif"
                 style={{
-                  fontSize: "clamp(2.25rem, 6vw, 4rem)",
-                  lineHeight: 1.05,
+                  fontSize: "clamp(2.5rem, 7vw, 4.5rem)",
+                  lineHeight: 1.0,
                   color: "var(--ink)",
                   letterSpacing: "-0.02em",
                 }}
               >
                 Corpus
               </h1>
-              <NeuralNetSVG mirror />
+              <p
+                className="mt-2"
+                style={{
+                  color: "var(--ink-3)",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  fontSize: "0.6rem",
+                  fontWeight: 600,
+                }}
+              >
+                The Daily Digest of Artificial Intelligence Research
+              </p>
             </div>
-            <p
-              className="mt-1.5"
-              style={{
-                color: "var(--ink-3)",
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                fontSize: "0.6rem",
-                fontWeight: 600,
-              }}
-            >
-              The Daily Digest of Artificial Intelligence Research
-            </p>
           </div>
 
           {/* Search */}

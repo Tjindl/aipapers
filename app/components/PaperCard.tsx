@@ -32,6 +32,59 @@ const SOURCE_LABELS: Record<string, string> = {
   organizations: "arXiv",
 };
 
+const ORG_BADGES: Record<string, { short: string; color: string }> = {
+  "Anthropic":           { short: "ANT",  color: "#e07040" },
+  "OpenAI":              { short: "OAI",  color: "#10a37f" },
+  "Google DeepMind":     { short: "GDM",  color: "#4285f4" },
+  "Google Research":     { short: "GGL",  color: "#ea4335" },
+  "Meta AI":             { short: "META", color: "#0866ff" },
+  "Microsoft Research":  { short: "MSFT", color: "#00a4ef" },
+  "Hugging Face":        { short: "HF",   color: "#f5a623" },
+  "NVIDIA Research":     { short: "NV",   color: "#76b900" },
+  "Apple ML":            { short: "AAPL", color: "#888888" },
+  "Amazon Science":      { short: "AWS",  color: "#ff9900" },
+  "Cohere":              { short: "COH",  color: "#39594d" },
+  "Mistral AI":          { short: "MST",  color: "#f54e42" },
+  "Stability AI":        { short: "STAB", color: "#7c3aed" },
+  "EleutherAI":          { short: "ELEU", color: "#3b82f6" },
+  "Allen AI":            { short: "AI2",  color: "#06b6d4" },
+  "Salesforce Research": { short: "SFDC", color: "#00a1e0" },
+  "IBM Research":        { short: "IBM",  color: "#054ada" },
+  "Samsung Research":    { short: "SAM",  color: "#1428a0" },
+  "Tencent AI":          { short: "TX",   color: "#07c160" },
+  "Baidu Research":      { short: "BDU",  color: "#2932e1" },
+};
+
+function OrgBadge({ tag }: { tag: string }) {
+  const badge = ORG_BADGES[tag];
+  if (!badge) return null;
+  return (
+    <span
+      title={tag}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        fontSize: "0.55rem",
+        fontWeight: 800,
+        letterSpacing: "0.07em",
+        padding: "0.22em 0.55em",
+        borderRadius: "3px",
+        color: badge.color,
+        background: `${badge.color}18`,
+        border: `1px solid ${badge.color}40`,
+        whiteSpace: "nowrap",
+        fontFamily: "var(--font-geist-mono, monospace)",
+      }}
+    >
+      {badge.short}
+    </span>
+  );
+}
+
+function firstOrgTag(tags: string[]): string | null {
+  return tags.find((t) => t in ORG_BADGES) ?? null;
+}
+
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -106,6 +159,7 @@ function BookmarkBtn({ paperId }: { paperId: string }) {
 export function PaperCard({ paper, featured = false }: { paper: Paper; featured?: boolean }) {
   const label = primaryLabel(paper.tags ?? [], paper.categories);
   const extra = extraLabels(paper.tags ?? [], label);
+  const orgTag = firstOrgTag(paper.tags ?? []);
   const primarySource = paper.sources[0];
   const sourceLabel = SOURCE_LABELS[primarySource?.source ?? ""] ?? primarySource?.source ?? "";
   const pdfUrl = paper.sources.find((s) => s.pdfUrl)?.pdfUrl;
@@ -126,6 +180,7 @@ export function PaperCard({ paper, featured = false }: { paper: Paper; featured?
             {extra.map((t) => (
               <span key={t} className="tag-pill tag-pill-muted">{t}</span>
             ))}
+            {orgTag && <OrgBadge tag={orgTag} />}
           </div>
           <BookmarkBtn paperId={paper.id} />
         </div>
@@ -233,6 +288,7 @@ export function PaperCard({ paper, featured = false }: { paper: Paper; featured?
       <div className="flex items-start justify-between gap-3 mb-2.5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
           {label && <span className="tag-pill shrink-0">{label}</span>}
+          {orgTag && <OrgBadge tag={orgTag} />}
           {(sourceLabel || date) && (
             <span className="byline" style={{ color: "var(--ink-3)" }}>
               {[sourceLabel, date].filter(Boolean).join(" · ")}
